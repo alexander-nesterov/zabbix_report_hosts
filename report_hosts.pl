@@ -12,8 +12,8 @@ use utf8;
 #================================================================
 #ZABBIX
 use constant ZABBIX_USER			=> 'Admin';
-use constant ZABBIX_PASSWORD	=> '78%Ytn#4Wq32!Hynm90';
-use constant ZABBIX_SERVER		=> '109.120.174.24';
+use constant ZABBIX_PASSWORD	=> 'password';
+use constant ZABBIX_SERVER		=> 'host';
 
 #DEBUG
 use constant DEBUG		=> 0; #0 - False, 1 - True
