@@ -11,12 +11,8 @@ use utf8;
 #Constants
 #================================================================
 #ZABBIX
-<<<<<<< HEAD
 use constant ZABBIX_USER		=> 'Admin';
-=======
-use constant ZABBIX_USER			=> 'Admin';
->>>>>>> origin/master
-use constant ZABBIX_PASSWORD	=> 'password';
+use constant ZABBIX_PASSWORD	=> 'passowrd';
 use constant ZABBIX_SERVER		=> 'host';
 
 #DEBUG
