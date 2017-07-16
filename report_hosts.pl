@@ -14,7 +14,7 @@ use utf8;
 #================================================================
 #ZABBIX
 use constant ZABBIX_USER     => 'Admin';
-use constant ZABBIX_PASSWORD => 'password';
+use constant ZABBIX_PASSWORD => '78%Y%;3?9"tn#4Wq*732!Hynm90';
 use constant ZABBIX_SERVER   => 'localhost';
 
 #DEBUG
@@ -189,27 +189,38 @@ sub get_hosts
     set_width_of_column($worksheet, 'R:R', 22);
     set_width_of_column($worksheet, 'S:S', 22);
     set_width_of_column($worksheet, 'T:T', 22);
-	
-    write_to_worksheet($worksheet, $header_font, 'A1', 'Сервер');
-    write_to_worksheet($worksheet, $header_font, 'B1', 'Тест');
-    write_to_worksheet($worksheet, $header_font, 'C1', 'Интервал, сек');
-    write_to_worksheet($worksheet, $header_font, 'D1', 'Ключ теста');
-    write_to_worksheet($worksheet, $header_font, 'E1', 'Описание теста');
-    write_to_worksheet($worksheet, $header_font, 'F1', 'Статус');
-    write_to_worksheet($worksheet, $header_font, 'G1', 'Период хранения истории (в днях)');
-    write_to_worksheet($worksheet, $header_font, 'H1', 'Период хранения динамики изменений (в днях)');
-    write_to_worksheet($worksheet, $header_font, 'I1', 'Триггер (чрезвычайный)');
-    write_to_worksheet($worksheet, $header_font, 'J1', 'Описание триггера');
-    write_to_worksheet($worksheet, $header_font, 'K1', 'Триггер (высокий)');
-    write_to_worksheet($worksheet, $header_font, 'L1', 'Описание триггера');
-    write_to_worksheet($worksheet, $header_font, 'M1', 'Триггер (средний)');
-    write_to_worksheet($worksheet, $header_font, 'N1', 'Описание триггера');
-    write_to_worksheet($worksheet, $header_font, 'O1', 'Триггер (предупреждение)');
-    write_to_worksheet($worksheet, $header_font, 'P1', 'Описание триггера');
-    write_to_worksheet($worksheet, $header_font, 'Q1', 'Триггер (информация)');
-    write_to_worksheet($worksheet, $header_font, 'R1', 'Описание триггера');
-    write_to_worksheet($worksheet, $header_font, 'S1', 'Триггер (не классифицировано)');
-    write_to_worksheet($worksheet, $header_font, 'T1', 'Описание триггера');
+
+    my @header_text = ('Сервер', 'Тест', 'Интервал, сек', 'Ключ теста', 'Описание теста',
+		       'Статус', 'Период хранения истории (в днях)', 'Период хранения динамики изменений (в днях)',
+		       'Триггер (чрезвычайный)', 'Описание триггера', 'Триггер (высокий)', 'Описание триггера',
+		       'Триггер (средний)', 'Описание триггера', 'Триггер (предупреждение)', 'Описание триггера',
+		       'Триггер (информация)','Описание триггера', 'Триггер (не классифицировано)', 'Описание триггера');
+
+    foreach (0..$#header_text)
+    {
+	#write_to_worksheet($worksheet, $header_font, 'A1', 'Сервер');
+	$worksheet->write(0, $_, $header_text[$_], $header_font);
+    }
+    #write_to_worksheet($worksheet, $header_font, 'A1', 'Сервер');
+    #write_to_worksheet($worksheet, $header_font, 'B1', 'Тест');
+    #write_to_worksheet($worksheet, $header_font, 'C1', 'Интервал, сек');
+    #write_to_worksheet($worksheet, $header_font, 'D1', 'Ключ теста');
+    #write_to_worksheet($worksheet, $header_font, 'E1', 'Описание теста');
+    #write_to_worksheet($worksheet, $header_font, 'F1', 'Статус');
+    #write_to_worksheet($worksheet, $header_font, 'G1', 'Период хранения истории (в днях)');
+    #write_to_worksheet($worksheet, $header_font, 'H1', 'Период хранения динамики изменений (в днях)');
+    #write_to_worksheet($worksheet, $header_font, 'I1', 'Триггер (чрезвычайный)');
+    #write_to_worksheet($worksheet, $header_font, 'J1', 'Описание триггера');
+    #write_to_worksheet($worksheet, $header_font, 'K1', 'Триггер (высокий)');
+    #write_to_worksheet($worksheet, $header_font, 'L1', 'Описание триггера');
+    #write_to_worksheet($worksheet, $header_font, 'M1', 'Триггер (средний)');
+    #write_to_worksheet($worksheet, $header_font, 'N1', 'Описание триггера');
+    #write_to_worksheet($worksheet, $header_font, 'O1', 'Триггер (предупреждение)');
+    #write_to_worksheet($worksheet, $header_font, 'P1', 'Описание триггера');
+    #write_to_worksheet($worksheet, $header_font, 'Q1', 'Триггер (информация)');
+    #write_to_worksheet($worksheet, $header_font, 'R1', 'Описание триггера');
+    #write_to_worksheet($worksheet, $header_font, 'S1', 'Триггер (не классифицировано)');
+    #write_to_worksheet($worksheet, $header_font, 'T1', 'Описание триггера');
 	
     my $i = 2;
     foreach my $host(@{$response->content->{'result'}}) 
