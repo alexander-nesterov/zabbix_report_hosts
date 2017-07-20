@@ -18,7 +18,7 @@ use constant ZABBIX_PASSWORD => 'password';
 use constant ZABBIX_SERVER   => 'localhost';
 
 #DEBUG
-use constant DEBUG => 0; #0 - False, 1 - True
+use constant DEBUG => 1; #0 - False, 1 - True
 
 my %TEST_STATUS = (
     0 => {
@@ -87,11 +87,8 @@ sub send_to_zabbix
     my $json = shift;
 
     my $url = "http://" . ZABBIX_SERVER . "/api_jsonrpc.php";
-
     my $client = new JSON::RPC::Client;
-
     my $response = $client->call($url, $json);
-
     return $response;
 }
 
@@ -107,13 +104,11 @@ sub zabbix_logout
     $data{'id'} = 1;
 
     my $response = send_to_zabbix(\%data);
-
     if (!defined($response))
     {
 	print "Logout failed, zabbix server: " . ZABBIX_SERVER . "\n" if DEBUG;
 	return 0;
     }
-
     print "Logout successful. Auth ID: $ZABBIX_AUTH_ID\n" if DEBUG;
 }
 
@@ -144,8 +139,6 @@ sub get_hosts
     #https://www.zabbix.com/documentation/3.2/manual/api/reference/template/object
     my @templates_params = ('templateid', 'host', 'description');
     $data{'params'}{'selectParentTemplates'} = [@templates_params];
-        
-    #$data{'params'}{'selectGroups'} = 'extend';
     
     $data{'params'}{'sortfield'} = 'name'; #Possible values are: hostid, host, name, status.
     $data{'params'}{'sortorder'} = 'DESC'; #DESC or ASC
@@ -155,7 +148,6 @@ sub get_hosts
     
     my $response = send_to_zabbix(\%data);
     
-    #print Dumper $response;
     my $workbook = create_workbook('report');
     my $worksheet = create_worksheet($workbook, 'Hosts');
     $worksheet->freeze_panes(1, 0);
@@ -163,11 +155,6 @@ sub get_hosts
 	
     my $header_font = set_font($workbook, 2, 1, 'red', 12, 'Cambria', '#A0D8E5', 'center', 1);
     my $data_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', '#FFFFFF', 'left', 1);
-    #my $status_item_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', '#FFFFFF', 'left', 1);
-    #my $status_item_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', $TEST_STATUS{$item->{'status'}}{'color'}, 'left', 1);
-    #my $status_item_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', $TEST_STATUS{'0'}{'color'}, 'left', 1);
-	
-    #my @column = 'A'..'Z';
 	
     set_width_of_column($worksheet, 'A:A', 25);
     set_width_of_column($worksheet, 'B:B', 45);
@@ -198,62 +185,59 @@ sub get_hosts
 
     foreach (0..$#header_text)
     {
-	#write_to_worksheet($worksheet, $header_font, 'A1', 'Сервер');
 	$worksheet->write(0, $_, $header_text[$_], $header_font);
     }
 	
-    my $i = 2;
+    my $row = 1;
     foreach my $host(@{$response->content->{'result'}}) 
     {
 	foreach my $item(@{$host->{'items'}})
 	{
-	    write_to_worksheet($worksheet, $data_font, "A$i", $host->{'name'});
-	    write_to_worksheet($worksheet, $data_font, "B$i", $item->{'name'});
-	    write_to_worksheet($worksheet, $data_font, "C$i", $item->{'delay'});
-	    write_to_worksheet($worksheet, $data_font, "D$i", $item->{'key_'});
-	    write_to_worksheet($worksheet, $data_font, "E$i", $item->{'description'});
-	    #write_to_worksheet($worksheet, $data_font, "F$i", $item->{'status'});
+	    write_to_worksheet($worksheet, $data_font, $host->{'name'}, $row, 0);
+	    write_to_worksheet($worksheet, $data_font, $item->{'name'}, $row, 1);
+	    write_to_worksheet($worksheet, $data_font, $item->{'delay'}, $row, 2);
+	    write_to_worksheet($worksheet, $data_font, $item->{'key_'}, $row, 3);
+	    write_to_worksheet($worksheet, $data_font, $item->{'description'}, $row, 4);
 			
 	    my $status_item_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', $TEST_STATUS{$item->{'status'}}{'color'}, 'left', 1);
-			
-	    write_to_worksheet($worksheet, $status_item_font, "F$i", $TEST_STATUS{$item->{'status'}}{'text'});
-	    write_to_worksheet($worksheet, $data_font, "G$i", $item->{'history'});
-	    write_to_worksheet($worksheet, $data_font, "H$i", $item->{'trends'});
+		
+	    write_to_worksheet($worksheet, $status_item_font, $TEST_STATUS{$item->{'status'}}{'text'}, $row, 5);
+	    write_to_worksheet($worksheet, $data_font, $item->{'history'}, $row, 6);
+	    write_to_worksheet($worksheet, $data_font, $item->{'trends'}, $row, 7);
 			
 	    my ($priority, $expression, $description) = get_trigger($item->{'itemid'});
-	    #write_to_worksheet($worksheet, $data_font, "I$i", $expression);
 			
 	    if ($priority == 0) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "S$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "T$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 8);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 9);
 	    }
-	    if ($priority == 1) 
+	    elsif ($priority == 1) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "Q$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "R$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 10);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 11);
 	    }
-	    if ($priority == 2) 
+	    elsif ($priority == 2) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "O$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "P$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 12);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 13);
 	    }
-	    if ($priority == 3) 
+	    elsif ($priority == 3) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "M$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "N$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 14);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 15);
 	    }
-	    if ($priority == 4) 
+	    elsif ($priority == 4) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "K$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "L$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 16);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 17);
 	    }
-	    if ($priority == 5) 
+	    elsif ($priority == 5) 
 	    { 
-		write_to_worksheet($worksheet, $data_font, "I$i", $expression);
-		write_to_worksheet($worksheet, $data_font, "J$i", $description);
+		write_to_worksheet($worksheet, $data_font, $expression, $row, 18);
+		write_to_worksheet($worksheet, $data_font, $description, $row, 19);
 	    }
-	    $i++;
+	    $row++;
 	}
 		
 	#print Dumper @{$host->{'triggers'}};
@@ -295,7 +279,6 @@ sub get_trigger
     my $expression;
     my $description;
 	
-    #print Dumper $response->content->{'result'};
     foreach my $trigger(@{$response->content->{'result'}})
     {
 	$priority = $trigger->{'priority'};
@@ -303,25 +286,26 @@ sub get_trigger
 	$description = $trigger->{'description'};
     }
 	
-    #print $description;
+    if (!defined $priority)
+    {
+	$priority = -1;
+    }	
     return ($priority, $expression, $description);
-    
-    #print Dumper $response;
 }
 
 #================================================================
-sub get_hosts_params
-{
-    my ($label, $ref_params, $ref_data) = @_;
-		
-    foreach my $data(@{$ref_data})
-    {					
-	foreach my $params(@{$ref_params})
-	{   
-	    print "$label: " . $data->{$params} . "\n";
-	}
-    }
-}
+#sub get_hosts_params
+#{
+#    my ($label, $ref_params, $ref_data) = @_;
+#		
+#    foreach my $data(@{$ref_data})
+#    {					
+#	foreach my $params(@{$ref_params})
+#	{   
+#	    print "$label: " . $data->{$params} . "\n";
+#	}
+#    }
+#}
 
 #================================================================
 sub create_workbook
@@ -376,15 +360,16 @@ sub set_font
 #================================================================
 sub write_to_worksheet
 {
-    my ($worksheet, $font, $cell, $text, $width_column) = @_;
-	
-    $worksheet->write($cell, $text, $font);
+    my ($worksheet, $font, $text, $row, $col) = @_;
+    
+    $worksheet->write($row, $col, $text, $font);
 }
 
 #================================================================
 sub set_width_of_column
 {
     my ($worksheet, $column, $width) = @_;
+    
     $worksheet->set_column($column, $width);
 }
 
@@ -394,6 +379,7 @@ sub main
     if (zabbix_auth() != 0)
     {
 	get_hosts();
+	zabbix_logout();
     } 
-    print "*** Done ***\n";
+    print "*** Done ***\n" if DEBUG;
 }
