@@ -107,9 +107,10 @@ sub zabbix_logout
     if (!defined($response))
     {
 	print "Logout failed, zabbix server: " . ZABBIX_SERVER . "\n" if DEBUG;
-	return 0;
+	return 1;
     }
     print "Logout successful. Auth ID: $ZABBIX_AUTH_ID\n" if DEBUG;
+    return 0;
 }
 
 #================================================================
@@ -154,7 +155,6 @@ sub get_hosts
     $worksheet->autofilter('A1:H1');
 	
     my $header_font = set_font($workbook, 2, 1, 'red', 12, 'Cambria', '#A0D8E5', 'center', 1);
-    my $data_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', '#FFFFFF', 'left', 1);
 	
     set_width_of_column($worksheet, 'A:A', 25);
     set_width_of_column($worksheet, 'B:B', 45);
@@ -188,8 +188,20 @@ sub get_hosts
 	$worksheet->write(0, $_, $header_text[$_], $header_font);
     }
 	
+    parse_data($workbook, $worksheet, \@{$response->content->{'result'}});
+	
+    close_workbook($workbook);
+}
+
+#================================================================
+sub parse_data
+{
+    my ($workbook, $worksheet, $ref_data) = @_;
+
+    my $data_font = set_font($workbook, 1, 0, 'black', 12, 'Cambria', '#FFFFFF', 'left', 1);
+    
     my $row = 1;
-    foreach my $host(@{$response->content->{'result'}}) 
+    foreach my $host(@{$ref_data})
     {
 	foreach my $item(@{$host->{'items'}})
 	{
@@ -238,10 +250,8 @@ sub get_hosts
 		write_to_worksheet($worksheet, $data_font, $description, $row, 19);
 	    }
 	    $row++;
-	}
-		
+	}		
     }
-    close_workbook($workbook);
 }
 
 #================================================================
@@ -363,7 +373,7 @@ sub set_width_of_column
 #================================================================
 sub main
 {
-    if (zabbix_auth() != 0)
+    if (zabbix_auth())
     {
 	get_hosts();
 	zabbix_logout();
