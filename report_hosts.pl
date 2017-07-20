@@ -240,19 +240,6 @@ sub get_hosts
 	    $row++;
 	}
 		
-	#print Dumper @{$host->{'triggers'}};
-	#get_hosts_params('Host',\@hosts_params, \@{$response->content->{'result'}});
-	#get_hosts_params('Interface', \@interfaces_params, \@{$host->{'interfaces'}});
-	#get_hosts_params('Item', \@items_params, \@{$host->{'items'}});
-	#get_hosts_params('Trigger', \@triggers_params, \@{$host->{'triggers'}});
-	#get_hosts_params('Template', \@templates_params, \@{$host->{'templates'}});
-		
-	#foreach (@hosts_params)
-	#{
-	#print 'Host: ' . $host->{$_} . "\n";
-	#write_to_worksheet($worksheet, $data_font, "A$i", $host->{'name'});
-	#$i++;
-	#}
     }
     close_workbook($workbook);
 }
