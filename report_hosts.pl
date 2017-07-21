@@ -23,11 +23,11 @@ use constant DEBUG => 1; #0 - False, 1 - True
 my %TEST_STATUS = (
     0 => {
 	color => '#00AA00',
-	text  => 'включен'
+	text  => 'enabled'
     },
     1 => {
 	color => '#DC0000',
-	text  => 'выключен'
+	text  => 'disabled'
     }
 );
 
@@ -38,6 +38,28 @@ my %COLOR_TRIGGER_PRIORITY = (
     3 => '#FFA059',	#Average
     4 => '#E97659',	#High
     5 => '#E45959'	#Disaster
+);
+
+my @HEADER_TEXT = ('Host name', 25, 
+		   'Item', 45, 
+		   'Update interval (in sec)', 16, 
+		   'Key', 45, 
+		   'Description', 45,
+		   'Status', 13, 
+		   'History storage period (in days)', 20, 
+		   'Trend storage period (in days)', 20,
+		   'Trigger (Disaster)', 22,
+		   'Description', 22,
+		   'Trigger (High)', 22, 
+		   'Description', 22,
+		   'Trigger (Average)', 22, 
+		   'Description', 22, 
+		   'Trigger (Warning)', 22, 
+		   'Description', 22,
+		   'Trigger (Information)', 22, 
+		   'Description', 22, 
+		   'Trigger (Not classified)', 22, 
+		   'Description', 22
 );
 
 #================================================================
@@ -64,7 +86,7 @@ sub zabbix_auth
 
     if (!defined($response))
     {
-	print "Authentication failed, zabbix server: " . ZABBIX_SERVER . "\n" if DEBUG;
+	print_error('Authentication failed, zabbix server: ' . ZABBIX_SERVER);
 	return 0;
     }
 
@@ -72,11 +94,11 @@ sub zabbix_auth
 
     if (!defined($ZABBIX_AUTH_ID)) 
     {
-	print "Authentication failed, zabbix server: " . ZABBIX_SERVER . "\n" if DEBUG;
+	print_error('Authentication failed, zabbix server: ' . ZABBIX_SERVER);
 	return 0; 
     }
 
-    print "Authentication successful. Auth ID: $ZABBIX_AUTH_ID\n" if DEBUG;
+    print_success("Authentication successful. Auth ID: $ZABBIX_AUTH_ID");
     return 1;
 }
 
@@ -86,7 +108,7 @@ sub send_to_zabbix
 {
     my $json = shift;
 
-    my $url = "http://" . ZABBIX_SERVER . "/api_jsonrpc.php";
+    my $url = 'http://' . ZABBIX_SERVER . '/api_jsonrpc.php';
     my $client = new JSON::RPC::Client;
     my $response = $client->call($url, $json);
     return $response;
@@ -106,11 +128,11 @@ sub zabbix_logout
     my $response = send_to_zabbix(\%data);
     if (!defined($response))
     {
-	print "Logout failed, zabbix server: " . ZABBIX_SERVER . "\n" if DEBUG;
-	return 1;
+	print_error('Logout failed, zabbix server: ' . ZABBIX_SERVER);
+	return 0;
     }
-    print "Logout successful. Auth ID: $ZABBIX_AUTH_ID\n" if DEBUG;
-    return 0;
+    print_success("Logout successful. Auth ID: $ZABBIX_AUTH_ID");
+    return 1;
 }
 
 #================================================================
@@ -146,55 +168,42 @@ sub get_hosts
     
     $data{'auth'} = $ZABBIX_AUTH_ID;
     $data{'id'} = 1;
-    
+   
     my $response = send_to_zabbix(\%data);
     
     my $workbook = create_workbook('report');
     my $worksheet = create_worksheet($workbook, 'Hosts');
-    $worksheet->freeze_panes(1, 0);
-    $worksheet->autofilter('A1:H1');
-	
-    my $header_font = set_font($workbook, 2, 1, 'red', 12, 'Cambria', '#A0D8E5', 'center', 1);
-	
-    set_width_of_column($worksheet, 'A:A', 25);
-    set_width_of_column($worksheet, 'B:B', 45);
-    set_width_of_column($worksheet, 'C:C', 16);
-    set_width_of_column($worksheet, 'D:D', 45);
-    set_width_of_column($worksheet, 'E:E', 45);
-    set_width_of_column($worksheet, 'F:F', 13);
-    set_width_of_column($worksheet, 'G:G', 20);
-    set_width_of_column($worksheet, 'H:H', 20);
-    set_width_of_column($worksheet, 'I:I', 22);
-    set_width_of_column($worksheet, 'J:J', 22);
-    set_width_of_column($worksheet, 'K:K', 22);
-    set_width_of_column($worksheet, 'L:L', 22);
-    set_width_of_column($worksheet, 'M:M', 22);
-    set_width_of_column($worksheet, 'N:N', 22);
-    set_width_of_column($worksheet, 'O:O', 22);
-    set_width_of_column($worksheet, 'P:P', 22);
-    set_width_of_column($worksheet, 'Q:Q', 22);
-    set_width_of_column($worksheet, 'R:R', 22);
-    set_width_of_column($worksheet, 'S:S', 22);
-    set_width_of_column($worksheet, 'T:T', 22);
 
-    my @header_text = ('Сервер', 'Тест', 'Интервал, сек', 'Ключ теста', 'Описание теста',
-		       'Статус', 'Период хранения истории (в днях)', 'Период хранения динамики изменений (в днях)',
-		       'Триггер (чрезвычайный)', 'Описание триггера', 'Триггер (высокий)', 'Описание триггера',
-		       'Триггер (средний)', 'Описание триггера', 'Триггер (предупреждение)', 'Описание триггера',
-		       'Триггер (информация)','Описание триггера', 'Триггер (не классифицировано)', 'Описание триггера');
-
-    foreach (0..$#header_text)
-    {
-	$worksheet->write(0, $_, $header_text[$_], $header_font);
-    }
-	
-    parse_data($workbook, $worksheet, \@{$response->content->{'result'}});
-	
+    set_header($workbook, $worksheet);
+    write_data($workbook, $worksheet, \@{$response->content->{'result'}});
     close_workbook($workbook);
 }
 
 #================================================================
-sub parse_data
+sub set_header
+{
+    my ($workbook, $worksheet) = @_;
+
+    my $header_font = set_font($workbook, 2, 1, 'red', 12, 'Cambria', '#A0D8E5', 'center', 1);
+    my $col = 0;
+    foreach (0..$#HEADER_TEXT)
+    {
+	if ($_ % 2 == 0)
+        {
+	    $worksheet->write(0, $col, $HEADER_TEXT[$_], $header_font);
+	    $col++;
+        }
+        else
+        {
+            $worksheet->set_column($col -1, $col -1, $HEADER_TEXT[$_]);
+        }
+    }
+    $worksheet->freeze_panes(1, 0);
+    $worksheet->autofilter(0, 0, 0, (scalar @HEADER_TEXT -1) / 2);
+}
+
+#================================================================
+sub write_data
 {
     my ($workbook, $worksheet, $ref_data) = @_;
 
@@ -363,20 +372,67 @@ sub write_to_worksheet
 }
 
 #================================================================
-sub set_width_of_column
+sub colored
 {
-    my ($worksheet, $column, $width) = @_;
-    
-    $worksheet->set_column($column, $width);
+    my ($text, $color) = @_;
+
+    my %colors = (
+        'black' => 30,
+        'red' => 31,
+        'green' => 32,
+        'yellow' => 33,
+        'blue' => 34,
+        'magenta' => 35,
+        'cyan' => 36,
+        'white' => 37
+    );
+
+    my $c = $colors{$color};
+    return "\033[" . "$colors{$color}m" . $text . "\e[0m";
+}
+
+#================================================================
+sub set_center
+{
+    my $text = shift;
+
+    my $width = `tput cols`;
+    my $len = ($width / 2) - length($text) / 2;
+    return ' ' x $len . "$text\n";
+}
+
+#================================================================
+sub print_error
+{
+    my $text = shift;
+
+    print colored("$text\n", 'red');
+}
+
+#================================================================
+sub print_success
+{
+    my $text = shift;
+
+    print colored("$text\n", 'green');
+}
+
+#================================================================
+sub print_info
+{
+    my $text = shift;
+
+    print colored("$text", 'cyan');
 }
 
 #================================================================
 sub main
 {
+    print_info(set_center('*** Start ***'));
     if (zabbix_auth())
     {
 	get_hosts();
 	zabbix_logout();
+	print_info(set_center('*** Done ***'));
     } 
-    print "*** Done ***\n" if DEBUG;
 }
