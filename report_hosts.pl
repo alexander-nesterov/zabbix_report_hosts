@@ -86,20 +86,20 @@ sub zabbix_auth
 
     if (!defined($response))
     {
-	print_error('Authentication failed, zabbix server: ' . ZABBIX_SERVER);
-	return 0;
+	do_print('Authentication failed, zabbix server: ' . ZABBIX_SERVER, 'ERROR');
+	return 1;
     }
 
     $ZABBIX_AUTH_ID = $response->content->{'result'};
 
     if (!defined($ZABBIX_AUTH_ID)) 
     {
-	print_error('Authentication failed, zabbix server: ' . ZABBIX_SERVER);
-	return 0; 
+	do_print('Authentication failed, zabbix server: ' . ZABBIX_SERVER, 'ERROR');
+	return 1; 
     }
 
-    print_success("Authentication successful. Auth ID: $ZABBIX_AUTH_ID");
-    return 1;
+    do_print("Authentication successful. Auth ID: $ZABBIX_AUTH_ID", 'SUCCESS');
+    return 0;
 }
 
 
@@ -128,11 +128,11 @@ sub zabbix_logout
     my $response = send_to_zabbix(\%data);
     if (!defined($response))
     {
-	print_error('Logout failed, zabbix server: ' . ZABBIX_SERVER);
-	return 0;
+	do_print('Logout failed, zabbix server: ' . ZABBIX_SERVER, 'ERROR');
+	return 1;
     }
-    print_success("Logout successful. Auth ID: $ZABBIX_AUTH_ID");
-    return 1;
+    do_print("Logout successful. Auth ID: $ZABBIX_AUTH_ID", 'SUCCESS');
+    return 0;
 }
 
 #================================================================
@@ -228,8 +228,8 @@ sub write_data
 			
 	    my ($priority, $expression, $description) = get_trigger($item->{'itemid'});
 			
-	    if ($priority == 0) 
-	    { 
+	    if ($priority == 0)
+	    {  
 		write_to_worksheet($worksheet, $data_font, $expression, $row, 8);
 		write_to_worksheet($worksheet, $data_font, $description, $row, 9);
 	    }
@@ -258,7 +258,7 @@ sub write_data
 		write_to_worksheet($worksheet, $data_font, $expression, $row, 18);
 		write_to_worksheet($worksheet, $data_font, $description, $row, 19);
 	    }
-	    $row++;
+	   	$row++;
 	}		
     }
 }
@@ -402,37 +402,26 @@ sub set_center
 }
 
 #================================================================
-sub print_error
+sub do_print
 {
-    my $text = shift;
+    my ($text, $level) = @_;
 
-    print colored("$text\n", 'red');
-}
-
-#================================================================
-sub print_success
-{
-    my $text = shift;
-
-    print colored("$text\n", 'green');
-}
-
-#================================================================
-sub print_info
-{
-    my $text = shift;
-
-    print colored("$text", 'cyan');
+    my %lev = (
+	'ERROR'   => 'red',
+    	'SUCCESS' => 'green',
+    	'INFO'    => 'cyan'
+    );
+    print colored("$text\n", $lev{$level});
 }
 
 #================================================================
 sub main
 {
-    print_info(set_center('*** Start ***'));
-    if (zabbix_auth())
+    do_print(set_center('*** Start ***'), 'INFO');
+    if (!zabbix_auth())
     {
 	get_hosts();
 	zabbix_logout();
-	print_info(set_center('*** Done ***'));
+	do_print(set_center('*** Done ***'), 'INFO');
     } 
 }
