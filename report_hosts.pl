@@ -228,41 +228,51 @@ sub write_data
 			
 	    my ($priority, $expression, $description) = get_trigger($item->{'itemid'});
 			
-	    if ($priority == 0)
-	    {  
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 8);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 9);
-	    }
-	    elsif ($priority == 1) 
-	    { 
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 10);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 11);
-	    }
-	    elsif ($priority == 2) 
-	    { 
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 12);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 13);
-	    }
-	    elsif ($priority == 3) 
-	    { 
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 14);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 15);
-	    }
-	    elsif ($priority == 4) 
-	    { 
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 16);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 17);
-	    }
-	    elsif ($priority == 5) 
-	    { 
-		write_to_worksheet($worksheet, $data_font, $expression, $row, 18);
-		write_to_worksheet($worksheet, $data_font, $description, $row, 19);
-	    }
+	    SWITCH: for ($priority)
+	    {
+		/-1/ && do { last; };
+		/0/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 8);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 9);
+			     last;
+			 };
+
+		/1/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 10);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 11);
+			     last;
+			 };	
+		/2/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 12);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 13);
+			     last;
+			 };
+		/3/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 14);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 15);
+			     last;
+			 };	
+		/4/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 16);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 17);
+			     last;
+			 };
+		/5/ && do 
+		         {
+			     write_to_worksheet($worksheet, $data_font, $expression, $row, 18);
+			     write_to_worksheet($worksheet, $data_font, $description, $row, 19);
+			     last;
+			 };
+		}
 	   	$row++;
 	}		
     }
 }
-
 #================================================================
 sub get_trigger
 {
