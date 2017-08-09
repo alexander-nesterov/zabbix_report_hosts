@@ -228,50 +228,57 @@ sub write_data
 			
 	    my ($priority, $expression, $description) = get_trigger($item->{'itemid'});
 			
-	    SWITCH: for ($priority)
-	    {
-		/-1/ && do { last; };
-		/0/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 8);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 9);
-			     last;
-			 };
-
-		/1/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 10);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 11);
-			     last;
-			 };	
-		/2/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 12);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 13);
-			     last;
-			 };
-		/3/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 14);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 15);
-			     last;
-			 };	
-		/4/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 16);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 17);
-			     last;
-			 };
-		/5/ && do 
-		         {
-			     write_to_worksheet($worksheet, $data_font, $expression, $row, 18);
-			     write_to_worksheet($worksheet, $data_font, $description, $row, 19);
-			     last;
-			 };
-		}
-	   	$row++;
+	    my $start_col = 8;
+	    write_trigger($worksheet, $data_font, $description, $priority, $expression, $row, $start_col);
+	    $row++;
 	}		
     }
+}
+
+sub write_trigger
+{
+	my ($worksheet, $data_font, $description, $priority, $expression, $row, $start_col) = @_;
+
+	SWITCH: for ($priority)
+	{
+	    /-1/ && do { last; };
+	    /5/ && do #Disaster
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+1);
+		last;
+	    };
+	    /4/ && do #High
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col+2);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+3);
+		last;
+	    };	
+	    /3/ && do #Average
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col+4);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+5);
+		last;
+	    };
+	    /2/ && do #Warning
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col+6);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+7);
+		last;
+	    };	
+	    /1/ && do #Information
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col+8);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+9);	     
+		last;
+	    };
+	    /0/ && do #Not classified
+	    {
+		write_to_worksheet($worksheet, $data_font, $expression, $row, $start_col+10);
+		write_to_worksheet($worksheet, $data_font, $description, $row, $start_col+11);
+		last;
+	    };
+	}
 }
 #================================================================
 sub get_trigger
